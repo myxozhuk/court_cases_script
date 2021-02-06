@@ -126,7 +126,7 @@ deb = 1                 #####################
 if deb == 1:
     courts_cnt = 0
     # document_cnt = 0
-    document_cnt = 24851
+    document_cnt = 32968
     head_fields = [
         'Номер дела',
         'Дата поступления',
@@ -165,13 +165,13 @@ if deb == 1:
             courts_cnt += 1
             # cases.clear()
 
-            if court == 'http://blag-gs.amr.sudrf.ru/':
+            if court == 'http://agvs.arh.sudrf.ru':
             # if court == 'http://arharinskiy.amr.sudrf.ru':
                 f_now = 1
             if f_now == 0:
                 continue
 
-            if court == 'http://agvs.arh.sudrf.ru':
+            if court == 'http://astrahanskygvs.ast.sudrf.ru':
                 flag_end = 1
                 break
 
