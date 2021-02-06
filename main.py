@@ -28,8 +28,11 @@ import os
 from multiprocessing import Pool
 
 
+
 start_time = str(datetime.now())
-print('Start time =', start_time)
+flog = open('log.txt', 'a')
+print('Start time =', start_time, file=flog)
+flog.close()
 
 
 def not_empty(st):
@@ -59,9 +62,7 @@ def create_param_str(div_id_tag_, struc):
             if input_tag_['name'] == 'Submit' or \
                     input_tag_['name'] == 'dic' or \
                     input_tag_['name'] == 'Reset' or \
-                    input_tag_['name'] == 'list' or \
-                    not input_tag_.has_attr('value') or \
-                    input_tag_.has_attr('value') and input_tag_['value'] == '':
+                    input_tag_['name'] == 'list':
                 continue
             if input_tag_['name'] == 'G1_PARTS__NAMESS' or input_tag_['name'] == 'G2_PARTS__NAMESS':
                 param_str_ += input_tag_['name'] + '=%D1%E1%E5%F0%E1%E0%ED%EA'
@@ -76,7 +77,11 @@ def create_param_str(div_id_tag_, struc):
                     not input_tag_.has_attr('value') or \
                     input_tag_.has_attr('value') and (input_tag_['value'] == '' or input_tag_['value'] is None):
                 continue
-        param_str_ += input_tag_['name'] + '=' + input_tag_['value'] + '&'
+        if input_tag_.has_attr('value'):
+            aaa = input_tag_['value']
+        else:
+            aaa = ''
+        param_str_ += input_tag_['name'] + '=' + aaa + '&'
     if struc == 1:
         param_str_ += 'Submit=%CD%E0%E9%F2%E8'
     elif struc == 2:
@@ -182,14 +187,18 @@ if deb == 1:
             writer = csv.writer(myFile)
             writer.writerow(head_fields)
             myFile.close()
-
-            print(court)  #################
+            flog = open('log.txt', 'a')
+            print(court, file=flog)  #################
+            flog.close()
             url_search_form = court + '/modules.php?name=sud_delo&name_op=sf&delo_id=1540005'
             time.sleep(3)
             try:
                 resp = session.get(url_search_form, verify=False, timeout=30)
             except Exception as e:
-                print('Error:', e, '\n URL:', url_search_form)
+                flog = open('log.txt', 'a')
+                print('Error:', e, '\n URL:', url_search_form, file=flog)
+                flog.close()
+
                 # timeout_courts.append(court)
                 ftimeout_courts = open('timeout' + str(region_cnt) + '/timeout_courts.txt', 'a')
                 print(court, file=ftimeout_courts)
@@ -197,11 +206,16 @@ if deb == 1:
                 continue
             soup = BeautifulSoup(resp.text, "lxml")
             if soup is None:
-                print("Error, can't parse this site", court)
+
+                with open('log.txt', 'a') as flog:
+                    print("Error, can't parse this site", court, file=flog)
+
                 continue
             div_class_tag = soup.find('div', {'class': 'box box_common m-all_m'})
             if div_class_tag is None:
-                print("Error, can't parse this site", court)
+                with open('log.txt', 'a') as flog:
+
+                    print("Error, can't parse this site", court, file=flog)
                 continue
             srv_num = 1
             div_id_tag = div_class_tag.find('div', id='box box_common m-all_m')
@@ -215,7 +229,9 @@ if deb == 1:
                 try:
                     resp = session.get(url_search, verify=False, timeout=30)
                 except Exception as e:
-                    print('Error:', e, '\n URL:', url_search)
+                    with open('log.txt', 'a') as flog:
+
+                        print('Error:', e, '\n URL:', url_search, file=flog)
                     # timeout_courts.append(url_search + str(i))
                     ftimeout_courts = open('timeout' + str(region_cnt) + '/timeout_courts.txt', 'a')
                     print(url_search, file=ftimeout_courts)
@@ -223,7 +239,9 @@ if deb == 1:
                     continue
                 soup = BeautifulSoup(resp.text, "lxml")
                 if soup is None:
-                    print("Error, can't parse this site", court)
+                    with open('log.txt', 'a') as flog:
+
+                        print("Error, can't parse this site", court, file=flog)
                     continue
                 div_id_tag = soup.find('div', id='content')
 
@@ -231,14 +249,16 @@ if deb == 1:
 
                 if div_id_tag is not None:
                     norm_str += 1
-                    print('norm_str =', norm_str)
+                    with open('log.txt', 'a') as flog:
+                        print('norm_str =', norm_str, file=flog)
                     # continue    ########################################
                     page_link = create_param_str(div_id_tag, 1)
                     time.sleep(3)
                     try:
                         resp = session.get(page_link, verify=False, timeout=30)
                     except Exception as e:
-                        print('Error:', e, '\n URL:', page_link)
+                        with open('log.txt', 'a') as flog:
+                            print('Error:', e, '\n URL:', page_link, file=flog)
                         ftimeout_courts = open('timeout' + str(region_cnt) + '/timeout_courts.txt', 'a')
                         print(page_link, file=ftimeout_courts)
                         ftimeout_courts.close()
@@ -247,7 +267,8 @@ if deb == 1:
                     max_page = 1
                     soup = BeautifulSoup(resp.text, 'lxml')
                     if soup is None:
-                        print("Error, can't parse this site:", court)
+                        with open('log.txt', 'a') as flog:
+                            print("Error, can't parse this site:", court, file=flog)
                         break
                     last_page_tag = soup.find('a', title="На последнюю страницу списка")
                     if last_page_tag is not None:
@@ -260,7 +281,8 @@ if deb == 1:
                             try:
                                 resp = session.get(page_link_, verify=False, timeout=30)
                             except Exception as e:
-                                print('Error:', e, '\n URL:', page_link_)
+                                with open('log.txt', 'a') as flog:
+                                    print('Error:', e, '\n URL:', page_link_, file=flog)
                                 ftimeout_pages = open('timeout' + str(region_cnt) + '/timeout_pages.txt', 'a')
                                 print(page_link_, file=ftimeout_pages)
                                 ftimeout_pages.close()
@@ -268,32 +290,37 @@ if deb == 1:
 
                             soup = BeautifulSoup(resp.text, 'lxml')
                             if soup is None:
-                                print("Error, can't parse this site:", court)
+                                with open('log.txt', 'a') as flog:
+                                    print("Error, can't parse this site:", court, file=flog)
                                 break
                         table = soup.find('table', id='tablcont')
                         if table is not None:
                             records = table.find_all('tr')
                             if records is None:
-                                print('records is None, break. pg_num =', pg_num)
+                                with open('log.txt', 'a') as flog:
+                                    print('records is None, break. pg_num =', pg_num, file=flog)
                                 break
                             records.pop(0)
                             for record in records:
                                 fields = record.find_all('td')
                                 if fields is None:
-                                    print('fields is None, continue, pg_num =', pg_num)
+                                    with open('log.txt', 'a') as flog:
+                                        print('fields is None, continue, pg_num =', pg_num, file=flog)
                                     continue
                                 a_t = fields[7].find('a')
                                 if not_empty(fields[5].string) and a_t is not None:
                                     cases.append(list())
                                     document_cnt += 1
-                                    print('document_cnt =', document_cnt)
+                                    with open('log.txt', 'a') as flog:
+                                        print('document_cnt =', document_cnt, file=flog)
                                     for ind in range(len(fields) - 1):
                                         cases[-1].append(fields[ind].text.strip())
                                     time.sleep(3)
                                     try:
                                         resp = session.get(court + a_t['href'], verify=False, timeout=30)
                                     except Exception as e:
-                                        print('Error:', e, '\n URL:', court + a_t['href'])
+                                        with open('log.txt', 'a') as flog:
+                                            print('Error:', e, '\n URL:', court + a_t['href'], file=flog)
                                         cases[-1].append(court + a_t['href'])
                                         ftimeout_cases = open('timeout' + str(region_cnt) + '/timeout_cases.txt', 'a')
                                         print(court + a_t['href'], file=ftimeout_cases)
@@ -327,7 +354,8 @@ if deb == 1:
                     try:
                         resp = session.get(page_link, verify=False, timeout=30)
                     except Exception as e:
-                        print('Error:', e, '\n URL:', page_link)
+                        with open('log.txt', 'a') as flog:
+                            print('Error:', e, '\n URL:', page_link, file=flog)
                         ftimeout_courts = open('timeout' + str(region_cnt) + '/timeout_courts.txt', 'a')
                         print(page_link, file=ftimeout_courts)
                         ftimeout_courts.close()
@@ -341,7 +369,8 @@ if deb == 1:
                         if len(li_tags) == 6:
                             last_page_tag = li_tags[-2].find('a')
                             if last_page_tag is None:
-                                print('Error, cannot parse this site')
+                                with open('log.txt', 'a') as flog:
+                                    print('Error, cannot parse this site', file=flog)
                                 continue
                             else:
                                 max_page = str_to_pgnum(last_page_tag)
@@ -354,18 +383,21 @@ if deb == 1:
                             try:
                                 resp = session.get(page_link_, verify=False, timeout=30)
                             except Exception as e:
-                                print('Error:', e, '\n URL:', page_link_)
+                                with open('log.txt', 'a') as flog:
+                                    print('Error:', e, '\n URL:', page_link_, file=flog)
                                 ftimeout_pages = open('timeout' + str(region_cnt) + '/timeout_pages.txt', 'a')
                                 print(page_link_, file=ftimeout_pages)
                                 ftimeout_pages.close()
                                 continue
                             soup = BeautifulSoup(resp.text, 'lxml')
                             if soup is None:
-                                print("Error, can't parse this site:", court)
+                                with open('log.txt', 'a') as flog:
+                                    print("Error, can't parse this site:", court, file=flog)
                                 break
                         div_id_tag = soup.find('div', id='search_results')
                         if div_id_tag is None:
-                            print('div_id_tag is None, continue, pg_num =', pg_num)
+                            with open('log.txt', 'a') as flog:
+                                print('div_id_tag is None, continue, pg_num =', pg_num, file=flog)
                             continue
                         table_ = div_id_tag.find('table')
                         if table_ is None:
@@ -374,25 +406,29 @@ if deb == 1:
                         if table is not None:
                             records = table.find_all('tr')
                             if len(records) == 0:
-                                print('records is None, break. pg_num =', pg_num)
+                                with open('log.txt', 'a') as flog:
+                                    print('records is None, break. pg_num =', pg_num, file=flog)
                                 break
                             for record in records:
                                 fields = record.find_all('td')
                                 if len(fields) == 0:
-                                    print('fields is empty, continue, pg_num =', pg_num)
+                                    with open('log.txt', 'a') as flog:
+                                        print('fields is empty, continue, pg_num =', pg_num, file=flog)
                                     continue
                                 a_t = fields[7].find('a')
                                 if not_empty(fields[5].string) and a_t is not None:
                                     cases.append(list())
                                     document_cnt += 1
-                                    print('document_cnt =', document_cnt)
+                                    with open('log.txt', 'a') as flog:
+                                        print('document_cnt =', document_cnt, file=flog)
                                     for ind in range(len(fields) - 1):
                                         cases[-1].append(fields[ind].text.strip())
                                     time.sleep(3)
                                     try:
                                         resp = session.get(court + a_t['href'], verify=False, timeout=30)
                                     except Exception as e:
-                                        print('Error:', e, '\n URL:', court + a_t['href'])
+                                        with open('log.txt', 'a') as flog:
+                                            print('Error:', e, '\n URL:', court + a_t['href'], file=flog)
                                         cases[-1].append(court + a_t['href'])
                                         ftimeout_cases = open('timeout' + str(region_cnt) + '/timeout_cases.txt', 'a')
                                         print(court + a_t['href'], file=ftimeout_cases)
@@ -410,7 +446,8 @@ if deb == 1:
                                     f_delo.close()
                                     cases[-1].append('cases1/' + str(document_cnt) + '.txt')
                         else:
-                            print('Error: cannot parse this site')
+                            with open('log.txt', 'a') as flog:
+                                print('Error: cannot parse this site', file=flog)
                             continue
                         if len(cases) >= 500:
                             myFile = open('tables' + str(region_cnt) + '/' + str(courts_cnt) + '.csv', 'a')
@@ -423,7 +460,8 @@ if deb == 1:
 
                 else:
                     third_str_courts_cnt += 1
-                    print('3rd structure:', court)
+                    with open('log.txt', 'a') as flog:
+                        print('3rd structure:', court, file=flog)
                     fotherstructure = open('otherstructure.txt', 'a')
                     print(court, file=fotherstructure)
                     fotherstructure.close()
@@ -1045,6 +1083,7 @@ elif mode == 2:
 
 # workbook.close()
 # print('all_documents_cnt =', all_documents_cnt)
-print('other structure:', oth_str_courts_cnt)
-print('Start time =', start_time)
-print('finish time =', str(datetime.now()))
+flog = open('log.txt', 'a')
+print('Start time =', start_time, file=flog)
+print('finish time =', str(datetime.now()), file=flog)
+flog.close()
